@@ -1,0 +1,88 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  padding: 25px; /* Thodi zyada padding */
+  height: 100%;
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  min-height: 30px;
+}
+.panel h4 {
+  margin: 0;
+  color: #374151; /* Darker text */
+  font-weight: 600;
+  font-size: 1.1rem; /* Thoda bada font */
+}
+.list {
+  overflow-y: auto;
+  flex-grow: 1; /* Bachi hui jagah le lega */
+  padding-right: 10px; /* Scrollbar ke liye space */
+}
+/* Webkit scrollbar styling (optional) */
+.list::-webkit-scrollbar {
+  width: 8px;
+}
+.list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+.list::-webkit-scrollbar-thumb {
+  background: #c5c5c5;
+  border-radius: 10px;
+}
+.list::-webkit-scrollbar-thumb:hover {
+  background: #a5a5a5;
+}
+.suggestionButton {
+  display: block;
+  width: 100%;
+  padding: 14px; /* Thodi zyada padding */
+  margin-bottom: 12px;
+  border: 1px solid #d1d5db; /* Halka border */
+  background: #fff;
+  color: #374151; /* Default text color */
+  border-radius: 8px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.95rem; /* Thoda chhota font button ke andar */
+}
+.suggestionButton:hover:not(:disabled) {
+  background-color: #5e72e4; /* Primary color on hover */
+  color: white;
+  border-color: #5e72e4;
+  transform: translateY(-1px); /* Halki si lift */
+  box-shadow: 0 2px 8px rgba(94, 114, 228, 0.3);
+}
+.suggestionButton:disabled {
+  border-color: #e5e7eb;
+  color: #9ca3af;
+  background-color: #f9fafb;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+.shuffleButton {
+  background-color: #fff;
+  border: 1px solid #d1d5db;
+  color: #4b5563;
+  padding: 8px 15px; /* Padding */
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.85rem; /* Thoda chhota font */
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+.shuffleButton:hover:not(:disabled) {
+  background-color: #f3f4f6; /* Halka grey background hover par */
+  border-color: #9ca3af;
+}
+.noSuggestions {
+    text-align: center;
+    color: #6b7280;
+    margin-top: 20px;
+    font-style: italic;
+}

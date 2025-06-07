@@ -1,0 +1,53 @@
+.pageContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  padding: 20px;
+  background-color: #eef2f7; /* Thoda alag background chat page ke liye */
+}
+.mainContainer {
+  width: 100%;
+  max-width: 1100px; /* Thoda chhota max-width */
+  height: 90vh;
+  background: white;
+  border-radius: 12px; /* Zyada rounded corners */
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  display: flex;
+  overflow: hidden;
+}
+.chatSection {
+  flex: 3; /* Chat area ko thoda zyada space */
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #e0e0e0; /* Halka border */
+}
+.suggestionsSection {
+  flex: 2; /* Suggestion panel ko thoda kam space */
+  background-color: #f9fafb; /* Halka alag background suggestion ke liye */
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto; /* Scroll agar content zyada ho */
+}
+.chatInputWrapper {
+  display: flex;
+  padding: 15px 20px; /* Thodi zyada padding */
+  border-top: 1px solid #e0e0e0;
+  background-color: #fff; /* Input area ko white rakho */
+}
+.chatInput {
+  flex-grow: 1;
+  border: 1px solid #d1d5db; /* Halka border input ke liye */
+  border-radius: 25px; /* Poora rounded input */
+  padding: 12px 20px; /* Padding */
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+.chatInput:focus {
+  border-color: #5e72e4; /* Focus par primary color */
+}
+.chatInput:disabled {
+  background-color: #f3f4f6; /* Disabled state ka background */
+  cursor: not-allowed;
+}

@@ -1,0 +1,11 @@
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background-color: #f0f2f5; /* Halki grey background */
+  color: #1c1e21; /* Dark grey text */
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+}
+* {
+  box-sizing: border-box;
+}
