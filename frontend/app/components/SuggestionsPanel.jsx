@@ -1,38 +1,59 @@
 "use client";
-import styles from './SuggestionsPanel.module.css'; // External CSS module
+import styles from './SuggestionsPanel.module.css';
 
-export default function SuggestionsPanel({ suggestions, onSelect, onShuffle, canTakeAction }) {
-  const panelTitle = canTakeAction ? "It's your turn! Choose or type:" : "Waiting for friend's reply...";
+export default function SuggestionsPanel({ 
+    suggestions, 
+    onSelect, 
+    onShuffle, 
+    isMyTurn, // Kya mera turn hai?
+    isFriendsTurn, // Kya dost ka turn hai?
+}) {
+
   const hasSuggestions = suggestions && suggestions.length > 0;
+  if (!hasSuggestions) return null; // Agar suggestions nahi hain toh kuch mat dikhao
 
-  return (
-    <div className={styles.panel}>
-      <div className={styles.header}>
-        <h4>{panelTitle}</h4>
-        {canTakeAction && hasSuggestions && (
-          <button onClick={onShuffle} className={styles.shuffleButton} title="Get new suggestions">
-            Shuffle 🔄
-          </button>
-        )}
-      </div>
-      <div className={styles.list}>
-        {hasSuggestions ? (
-          suggestions.map((item, index) => (
-            <button
-              key={index}
-              onClick={() => onSelect(item)}
-              disabled={!canTakeAction}
-              className={styles.suggestionButton}
-            >
+  if (isMyTurn) {
+    // Agar mera turn hai, toh clickable, right-aligned buttons dikhao
+    return (
+      <div className={`${styles.panel} ${styles.myTurn}`}>
+        <div className={styles.list}>
+          <button onClick={onShuffle} className={styles.shuffleChip}>Shuffle 🔄</button>
+          {suggestions.map((item, index) => (
+            <button key={index} onClick={() => onSelect(item)} className={styles.chip}>
               {item}
             </button>
-          ))
-        ) : (
-          <p className={styles.noSuggestions}>
-            {canTakeAction ? "Loading suggestions or type your message..." : "Suggestions will appear here..."}
-          </p>
-        )}
+          ))}
+        </div>
       </div>
+    );
+  }
+
+  if (isFriendsTurn) {
+    // Agar dost ka turn hai, toh non-clickable, left-aligned chips dikhao
+    return (
+      <div className={`${styles.panel} ${styles.friendsTurn}`}>
+        <div className={styles.list}>
+          {suggestions.map((item, index) => (
+            <div key={index} className={styles.chip}>
+              {item}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Agar kisi ka turn nahi (initial state), toh suggestions ko center mein dikhao
+  // Yeh starter questions ke liye hai
+  return (
+    <div className={styles.panel}>
+        <div className={styles.list} style={{ justifyContent: 'center' }}>
+            {suggestions.map((item, index) => (
+                <button key={index} onClick={() => onSelect(item)} className={`${styles.chip} ${styles.myTurn}`}>
+                {item}
+                </button>
+            ))}
+        </div>
     </div>
   );
 }

@@ -1,0 +1,33 @@
+/* File: frontend/app/components/Header.module.css */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background-color: #fff;
+    border-bottom: 1px solid #e5e7eb;
+    flex-shrink: 0;
+}
+.categoryDisplay {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #374151;
+}
+.categoryDisplay span {
+    font-weight: 400;
+    color: #6b7280;
+}
+.changeButton {
+    background: none;
+    border: 1px solid #d1d5db;
+    padding: 6px 12px;
+    border-radius: 6px;
+    color: #4b5563;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+.changeButton:hover {
+    background-color: #f3f4f6;
+    border-color: #9ca3af;
+}
