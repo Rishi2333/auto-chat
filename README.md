@@ -71,6 +71,7 @@ MONGO_URI=YOUR_MONGODB_CONNECTION_STRING
 NODE_ENV=development
 
 PORT=3001
+
 GEMINI_API_KEY=YOUR_GEMINI_API_KEY
 
 Start the backend server. It will watch for file changes and restart automatically.
