@@ -54,7 +54,7 @@ Google AI API Key: Get your free Gemini API key from Google AI Studio.
 Installation & Setup
 Clone the Repository:
 
-git clone https://github.com/your-username/auto-chat.git
+git clone https://github.com/Rishi2333/auto-chat.git
 cd auto-chat
 
 Backend Setup:
