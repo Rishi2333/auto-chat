@@ -1,4 +1,5 @@
-Auto-Chat: AI-Powered Conversational Assistant
+Auto-Chat
+
 Auto-Chat is a real-time, AI-driven web chat application designed to help users have more engaging and progressive conversations. Its primary goal is to eliminate "conversation block"—the awkward moment when you don't know what to say next—by leveraging Google's Gemini AI to generate smart, context-aware reply suggestions. This dynamic approach ensures that every interaction is unique and tailored to the flow of the chat.
 
 This project is particularly helpful for individuals looking to improve their communication skills, brainstorm creative ideas with a partner, or simply enjoy a fun and non-repetitive chat experience that feels more natural and human-like.
@@ -149,4 +150,4 @@ Please make sure to discuss the changes you wish to make via an issue before mak
 📄 License
 This project is distributed under the MIT License. See the LICENSE file for more information.
 
-Ek Pull Request kholo.
+
