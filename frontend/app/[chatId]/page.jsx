@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { v4 as uuidV4 } from 'uuid';
 import io from 'socket.io-client';
@@ -117,7 +117,6 @@ export default function ChatRoom() {
     setCurrentCategory('');
   };
   
-  // NAYE MESSAGE HANDLERS
   const handleSendSuggestedMessage = (suggestion) => {
       if (suggestion.trim() && (isMyTurn || canIStart)) {
           socket.emit('send_suggested_message', {
@@ -133,12 +132,19 @@ export default function ChatRoom() {
               roomId,
               message: customInput.trim(),
           });
-          setCustomInput(""); // Input ko clear karein
+          setCustomInput("");
       }
   };
 
   const handleShuffle = () => {
-    if (socket) socket.emit('request_new_suggestions', { roomId });
+      // **BADLAV YAHAN HAI:** Ab hum purane suggestions bhi bhej rahe hain
+      if (socket) {
+          socket.emit('request_new_suggestions', {
+              roomId,
+              // Backend ko batayein ki in suggestions ko dobara na bheje
+              previousSuggestions: suggestions 
+          });
+      }
   };
 
   const isMyTurn = myId === activeUserId;
@@ -172,9 +178,9 @@ export default function ChatRoom() {
                 <div className={styles.inputArea}>
                   <SuggestionsPanel
                     suggestions={suggestions}
-                    onSelect={handleSendSuggestedMessage} // Suggested message ka handler
+                    onSelect={handleSendSuggestedMessage}
                     onShuffle={handleShuffle}
-                    isMyTurn={canSelectSuggestion} // Suggestion select karne ka turn
+                    isMyTurn={canSelectSuggestion}
                     isFriendsTurn={isFriendsTurn}
                   />
                   
@@ -185,7 +191,7 @@ export default function ChatRoom() {
                       onChange={(e) => setCustomInput(e.target.value)}
                       placeholder="Type a message..."
                       onKeyPress={(e) => { if (e.key === 'Enter') { handleSendCustomMessage(); } }}
-                      disabled={false} // Input hamesha enabled rahega
+                      disabled={false}
                       className={styles.chatInput}
                     />
                     <button onClick={handleSendCustomMessage} disabled={customInput.trim() === ''} className={styles.sendButton}>

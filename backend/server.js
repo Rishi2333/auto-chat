@@ -8,34 +8,41 @@ import Room from './models/Room.js';
 import Message from './models/Message.js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// --- START: AI SETUP ---
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-const getAiGeneratedSuggestions = async (category, type, chatHistory = []) => {
+// **BADLAV YAHAN HAI:** Function ab `previousSuggestions` ka parameter lega
+const getAiGeneratedSuggestions = async (category, type, chatHistory = [], previousSuggestions = []) => {
     try {
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-        // BUG FIX: Sabse naya message chatHistory[0] se milega kyunki hum descending order me sort kar rahe hain.
         const latestMessageText = chatHistory.length > 0 ? chatHistory[0].text : '';
-
-        // PROMPT IMPROVEMENT: Chat history ko seedha (chronological) order me AI ko bhejte hain.
         const chronologicalHistory = [...chatHistory].reverse();
         const historyText = chronologicalHistory.map(m => `User: ${m.text}`).join('\n');
         
-        const promptAction = type === 'question'
-            ? `In hinglish language, generate 3 interesting and progressive conversation starter questions for the category "${category}". The questions should help the conversation move forward.`
-            : `You are a chat helper. A user has sent a message. Your task is to generate 3 intresting replies for the OTHER user.
+        // **BADLAV YAHAN HAI:** AI ko batayenge ki purane suggestions ko avoid kare
+        const avoidText = previousSuggestions.length > 0
+            ? `\n**Crucial Instruction:** DO NOT generate any replies that are similar to these, as the user has already seen them generate something diffrent from this but should be on the "${category}" : ${JSON.stringify(previousSuggestions)}.`
+            : '';
 
-            **Rules for Replies:**
-            1.  **Language:** Generate replies in Hinglish (a mix of Hindi and English).
-            2.  **Context is Key:** Base the replies on the latest message and the overall conversation history.
-            3.  **Stay On Topic:** Replies must be related to the category: "${category}".
-            4.  **Handle Off-Topic Messages:** If the latest message seems off-topic, create a reply that acknowledges it but then gently guides the conversation back to the category "${category}".
-            5.  **Be Progressive:** The replies must not be repetitive. They must help the conversation move forward in a natural and engaging way.
-            6.  **Be Diverse:** Ensure the three suggestions are different from each other.
-            7.  **Be Engaging:** The replies should be interesting and engaging, encouraging the other user to respond.
-            8.  **Be Concise:** Each reply should be a single sentence or question, not a long paragraph.
-        
+        const promptAction = type === 'question'
+            ? `In just Hinglish, generate 3 unique, interesting, and progressive conversation starter questions for the category "${category}". The questions should help the conversation move forward naturally.`
+            : `You are a sophisticated chat helper. A user has sent a message. Your task is to generate 3 interesting replies for the OTHER user to choose from.
+
+            **Core Objective:** Make the conversation more engaging, natural, and progressive.
+
+            **Rules for Generating Replies:**
+            1.  **Language:** Generate all replies in just Hinglish (a mix of Hindi and English means hindi words are written in english).
+            2.  **Context is Key:** Base the replies on the latest message and the overall conversation history. Avoid repeating suggestions that are too similar to past messages.
+            3.  **Stay On Topic:** Replies must be clearly related to the main category: "${category}".
+            4.  **Handle Off-Topic Messages:** If the latest message seems off-topic, one reply can acknowledge it, but you must gently and creatively guide the conversation back to the category: "${category}".
+            5.  **Be Progressive & Natural:** Replies must help the conversation move forward. Avoid repetitive cross-questioning. The goal is a smooth flow, not an interrogation. Don't force a topic change if the current one is flowing well.
+            6.  **Maintain Diversity & Tone:**
+                * Ensure all three suggestions are distinct from each other.
+                * Make the replies engaging and encouraging to elicit a response.
+                * Generally, keep the tone supportive. However, to make the conversation more "spicy" and interesting, one of the three replies can occasionally be slightly challenging, playful, or offer a contrary viewpoint, but only if the situation allows.
+            7.  **Be Short and Concise:** Each reply must be a single, clear sentence or question. Avoid long paragraphs.
+            8.  **Focus:** Do not try to cover too many topics in one reply. Focus on one aspect of the conversation at a time.
+
             **Conversation Category:** "${category}"
             **Conversation History (oldest to newest):**
             ${historyText || '(No history yet, start the conversation!)'}
@@ -43,7 +50,7 @@ const getAiGeneratedSuggestions = async (category, type, chatHistory = []) => {
             **Latest Message to Reply To:** "${latestMessageText}"
             `;
 
-        const prompt = `${promptAction}
+        const prompt = `${promptAction} ${avoidText}
         
         IMPORTANT: Your output MUST be a valid JavaScript array of 3 strings, like this: ["Pehla reply", "Dusra reply", "Teesra reply"]. Do not add any other text, formatting like markdown (e.g. \`\`\`json), or explanations.`;
 
@@ -69,7 +76,6 @@ const getAiGeneratedSuggestions = async (category, type, chatHistory = []) => {
             : ["Tell me more!", "That's interesting, why so?", "What happened after that?"];
     }
 };
-// --- END: AI SETUP ---
 
 connectDB();
 
@@ -77,19 +83,15 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "http://localhost:3000" } });
 
-// Helper Function: Turn badalne aur naye suggestions laane ke liye
 async function handlePostMessageActions(roomId, currentSocketId) {
     const room = await Room.findById(roomId);
     if (!room) return;
 
-    // Turn switch karein
     const nextActiveUser = room.users.find(id => id !== currentSocketId);
     room.activeUser = nextActiveUser;
     await room.save();
     
-    // Naye active user ke liye AI suggestions generate karein
     if (nextActiveUser) {
-        // BUG FIX: Database se hamesha latest messages lein.
         const chatHistory = await Message.find({ roomId }).sort({ createdAt: -1 }).limit(10);
         const replies = await getAiGeneratedSuggestions(room.category, 'reply', chatHistory);
         io.to(roomId).emit('update_suggestions', { suggestions: replies, activeUserId: room.activeUser, category: room.category });
@@ -100,6 +102,7 @@ io.on('connection', (socket) => {
     console.log(`[BE] User Connected: ${socket.id}`);
 
     socket.on('join-room', async ({ roomId, userId }) => {
+        // (Ismein koi badlav nahi hai)
         try {
             if (!userId) return;
             socket.join(roomId);
@@ -147,6 +150,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('select_category', async ({ roomId, category }) => {
+        // (Ismein koi badlav nahi hai)
         try {
             const room = await Room.findByIdAndUpdate(roomId, { category: category.toLowerCase(), activeUser: null }, { new: true });
             if (room && room.users.length === 2) {
@@ -159,6 +163,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('send_suggested_message', async ({ roomId, message }) => {
+        // (Ismein koi badlav nahi hai)
         try {
             const room = await Room.findById(roomId);
             if (!room || !socket.userId) return;
@@ -176,6 +181,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('send_custom_message', async ({ roomId, message }) => {
+        // (Ismein koi badlav nahi hai)
         try {
             const room = await Room.findById(roomId);
             if (!room || !socket.userId) return;
@@ -189,7 +195,8 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('request_new_suggestions', async ({ roomId }) => {
+    // **BADLAV YAHAN HAI:** `previousSuggestions` ko handle kar rahe hain
+    socket.on('request_new_suggestions', async ({ roomId, previousSuggestions }) => {
         try {
             const room = await Room.findById(roomId);
             if (!room || !room.category) return;
@@ -197,7 +204,7 @@ io.on('connection', (socket) => {
             if (canShuffle) {
                 const type = room.activeUser === null ? 'question' : 'reply';
                 const chatHistory = await Message.find({ roomId }).sort({ createdAt: -1 }).limit(10);
-                const newSuggestions = await getAiGeneratedSuggestions(room.category, type, chatHistory);
+                const newSuggestions = await getAiGeneratedSuggestions(room.category, type, chatHistory, previousSuggestions);
                 io.to(roomId).emit('update_suggestions', { suggestions: newSuggestions, activeUserId: room.activeUser, category: room.category });
             }
         } catch (error) {
@@ -206,6 +213,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('disconnect', async () => {
+        // (Ismein koi badlav nahi hai)
         try {
             console.log(`[BE] User Disconnected: ${socket.id}`);
             const { roomId } = socket;
