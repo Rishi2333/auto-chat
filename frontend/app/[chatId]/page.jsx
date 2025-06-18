@@ -12,7 +12,6 @@ import Header from '../components/Header';
 
 let socket;
 
-// Function to get or create a user ID from localStorage
 const getUserId = () => {
   if (typeof window !== 'undefined') {
     let userId = localStorage.getItem('autoChatUserId');
@@ -29,7 +28,6 @@ export default function ChatRoom() {
   const params = useParams();
   const roomId = params.chatId;
 
-  // State Management
   const [appStatus, setAppStatus] = useState('connecting');
   const [myId, setMyId] = useState('');
   const [myUserId, setMyUserId] = useState('');
@@ -47,7 +45,6 @@ export default function ChatRoom() {
     const socket_url = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001';
     socket = io(socket_url);
 
-    // Event handlers ko define karna
     const handleConnect = () => {
       setMyId(socket.id);
       socket.emit('join-room', { roomId, userId });
@@ -76,17 +73,13 @@ export default function ChatRoom() {
       setSuggestions(suggestions || []);
       setActiveUserId(activeUserId);
       if (category) setCurrentCategory(category);
-      // Rejoin karne par category selection screen skip karne ke liye
-      if (category) {
-        setCategorySelected(true);
-      }
+      if (category) setCategorySelected(true);
     };
 
     const handleNewMessage = ({ user, text }) => {
       setMessages((prev) => [...prev, { text, type: user === socket.id ? 'sent' : 'received' }]);
     };
     
-    // Listeners ko setup karna
     socket.on('connect', handleConnect);
     socket.on('waiting_for_player', handleWaiting);
     socket.on('game_ready', handleGameReady);
@@ -97,7 +90,6 @@ export default function ChatRoom() {
     socket.on('update_suggestions', handleUpdateSuggestions);
     socket.on('new_message', handleNewMessage);
 
-    // Cleanup function
     return () => {
       if (socket) {
         socket.off('connect', handleConnect);
@@ -112,9 +104,8 @@ export default function ChatRoom() {
         socket.disconnect();
       }
     };
-  }, [roomId]); // Yeh effect sirf tab chalega jab roomId badlega
+  }, [roomId]);
 
-  // Action Handlers
   const handleCategorySelect = (category) => {
     if (socket) socket.emit('select_category', { roomId, category });
   };
@@ -125,36 +116,36 @@ export default function ChatRoom() {
     setActiveUserId(null);
     setCurrentCategory('');
   };
+  
+  // NAYE MESSAGE HANDLERS
+  const handleSendSuggestedMessage = (suggestion) => {
+      if (suggestion.trim() && (isMyTurn || canIStart)) {
+          socket.emit('send_suggested_message', {
+              roomId,
+              message: suggestion,
+          });
+      }
+  };
 
-  const handleSendMessage = (message) => {
-    const trimmedMessage = message.trim();
-    if (trimmedMessage && socket) {
-      socket.emit('send_message', { roomId, message: trimmedMessage });
-    }
+  const handleSendCustomMessage = () => {
+      if (customInput.trim()) {
+          socket.emit('send_custom_message', {
+              roomId,
+              message: customInput.trim(),
+          });
+          setCustomInput(""); // Input ko clear karein
+      }
   };
 
   const handleShuffle = () => {
     if (socket) socket.emit('request_new_suggestions', { roomId });
   };
 
-  const handleCustomInputChange = (e) => {
-    setCustomInput(e.target.value);
-  };
-
-  const handleCustomMessageSend = () => {
-    if (customInput.trim() !== '') {
-        handleSendMessage(customInput);
-        setCustomInput("");
-    }
-  };
-  
-  // Logic to determine user's turn
   const isMyTurn = myId === activeUserId;
   const isFriendsTurn = activeUserId !== null && myId !== activeUserId;
   const canIStart = activeUserId === null && categorySelected && appStatus === 'active';
-  const canTakeAction = isMyTurn || canIStart;
+  const canSelectSuggestion = isMyTurn || canIStart;
 
-  // Main Render Logic
   const renderContent = () => {
     switch (appStatus) {
       case 'waiting':
@@ -181,9 +172,9 @@ export default function ChatRoom() {
                 <div className={styles.inputArea}>
                   <SuggestionsPanel
                     suggestions={suggestions}
-                    onSelect={handleSendMessage}
+                    onSelect={handleSendSuggestedMessage} // Suggested message ka handler
                     onShuffle={handleShuffle}
-                    isMyTurn={canTakeAction}
+                    isMyTurn={canSelectSuggestion} // Suggestion select karne ka turn
                     isFriendsTurn={isFriendsTurn}
                   />
                   
@@ -191,13 +182,13 @@ export default function ChatRoom() {
                     <input
                       type="text"
                       value={customInput}
-                      onChange={handleCustomInputChange}
-                      placeholder={canTakeAction ? "Type or choose a reply..." : "Waiting for friend's turn..."}
-                      onKeyPress={(e) => { if (e.key === 'Enter' && canTakeAction) { handleCustomMessageSend(); } }}
-                      disabled={!canTakeAction}
+                      onChange={(e) => setCustomInput(e.target.value)}
+                      placeholder="Type a message..."
+                      onKeyPress={(e) => { if (e.key === 'Enter') { handleSendCustomMessage(); } }}
+                      disabled={false} // Input hamesha enabled rahega
                       className={styles.chatInput}
                     />
-                    <button onClick={handleCustomMessageSend} disabled={!canTakeAction || customInput.trim() === ''} className={styles.sendButton}>
+                    <button onClick={handleSendCustomMessage} disabled={customInput.trim() === ''} className={styles.sendButton}>
                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                     </button>
                   </div>
@@ -206,7 +197,7 @@ export default function ChatRoom() {
             )}
           </div>
         );
-      default: // 'connecting'
+      default:
         return <StatusScreen title="Connecting to Auto-Chat..." message="Please wait..." />;
     }
   };

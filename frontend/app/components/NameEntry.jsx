@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import styles from './NameEntry.module.css';
 
+
 export default function NameEntry({ onNameSubmit }) {
   const [name, setName] = useState('');
 
