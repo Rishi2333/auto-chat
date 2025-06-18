@@ -55,6 +55,7 @@ Installation & Setup
 Clone the Repository:
 
 git clone https://github.com/Rishi2333/auto-chat.git
+
 cd auto-chat
 
 Backend Setup:
@@ -66,7 +67,9 @@ npm install
 Next, create a .env file in the /backend folder. This file will store your secret keys. Do not commit this file to Git.
 
 MONGO_URI=YOUR_MONGODB_CONNECTION_STRING
+
 NODE_ENV=development
+
 PORT=3001
 GEMINI_API_KEY=YOUR_GEMINI_API_KEY
 
